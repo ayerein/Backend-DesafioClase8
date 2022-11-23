@@ -15,12 +15,23 @@ class Contenedor{
                 console.log(`Producto agregado! Id del producto: ${obj.id}`)
                 return await fs.promises.writeFile(this.archivo, JSON.stringify(productos, null, 2))
             } else {
-                let agregarProductos = JSON.parse(traerProductos)
-                obj.id = agregarProductos.length + 1
+                let agregarProductos = traerProductos
+                obj.id = agregarProductos[agregarProductos.length - 1].id + 1
                 agregarProductos.push(obj)
                 console.log(`Producto agregado! Id del producto: ${obj.id}`)
                 return await fs.promises.writeFile(this.archivo, JSON.stringify(agregarProductos, null, 2))
             }
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    async update(productoNuevo){
+        let traerProductos = await this.getAll()
+        let nuevoArray = traerProductos.filter(obj => obj.id != productoNuevo.id)
+        try{
+            nuevoArray.push(productoNuevo)
+            return await fs.promises.writeFile(this.archivo, JSON.stringify(nuevoArray, null, 2))
         } catch (error) {
             console.log(error)
         }
@@ -43,7 +54,7 @@ class Contenedor{
     async getAll(){
         try {
             let productosTodos = await fs.promises.readFile(this.archivo, 'utf-8')
-            return productosTodos
+            return JSON.parse(productosTodos)
         } catch (error) {
             console.log(error)
         }
@@ -52,28 +63,10 @@ class Contenedor{
     async deleteById(id){
         let traerProductos = await this.getAll()
         try {
-            let nuevoArray = JSON.parse(traerProductos).filter(obj => obj.id != id)
+            let nuevoArray = traerProductos.filter(obj => obj.id != id)
             return await fs.promises.writeFile(this.archivo, JSON.stringify(nuevoArray, null, 2))
         } catch (error) {
             console.log(error)
-        }
-    }
-
-    async updateById(obj){
-        let traerProductos = await this.getAll()
-        let productos = JSON.parse(traerProductos)
-        console.log(productos)
-        let index = productos.map(producto => producto.id).indexOf(Number(obj.id))
-        if (index >= 0){
-            try {
-                let nuevoArray = await this.deleteById(index +1)
-                let nuevoAgregar = await JSON.parse(nuevoArray).push(obj)
-                console.log(nuevoArray)
-                console.log(`Producto actualizado! Id del producto: ${obj.id}`)
-                return await fs.promises.writeFile(this.archivo, JSON.stringify(nuevoAgregar, null, 2))   
-            } catch (error) {
-                console.log(error)
-            }
         }
     }
 }
